@@ -7,27 +7,24 @@ export async function POST(req: Request) {
   const SIGNING_SECRET = process.env.SIGNING_SECRET;
 
   if (!SIGNING_SECRET) {
-    throw new Error(
-      "Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env.local"
-    );
+    throw new Error("Missing SIGNING_SECRET");
   }
 
   const wh = new Webhook(SIGNING_SECRET);
+  const headerPayload = headers();
 
-  const headerPayload = await headers();
-  const svix_id = headerPayload.get("svix-id");
-  const svix_timestamp = headerPayload.get("svix-timestamp");
-  const svix_signature = headerPayload.get("svix-signature");
+  const svix_id = (await headerPayload).get("svix-id");
+  const svix_timestamp = (await headerPayload).get("svix-timestamp");
+  const svix_signature = (await headerPayload).get("svix-signature");
 
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response("Error: Missing Svix headers", { status: 400 });
+    return new Response("Missing Svix headers", { status: 400 });
   }
 
   const payload = await req.json();
   const body = JSON.stringify(payload);
 
   let evt: WebhookEvent;
-
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
@@ -35,35 +32,35 @@ export async function POST(req: Request) {
       "svix-signature": svix_signature,
     }) as WebhookEvent;
   } catch (err) {
-    console.log("Error: Could not verify webhook:", err);
-    return new Response("Error: Verefication error", { status: 400 });
+    console.error("Webhook verification failed:", err);
+    return new Response("Verification error", { status: 400 });
   }
 
-  const { id } = evt.data;
   const eventType = evt.type;
 
   if (eventType === "user.created") {
     await db.user.create({
       data: {
         clerkId: evt.data.id,
-        username: evt.data.username!,
+        username: evt.data.username ?? "",
         avatar: evt.data.image_url,
-        fullName: `${evt.data.first_name} ${evt.data.last_name}`,
+        fullName: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`,
         bio: "Bio is not provided!!!",
       },
     });
   }
+
   if (eventType === "user.updated") {
     await db.user.update({
       where: { clerkId: evt.data.id },
       data: {
-        username: evt.data.username!,
+        username: evt.data.username ?? "",
         avatar: evt.data.image_url,
-        fullName: `${evt.data.first_name} ${evt.data.last_name}`,
-        bio: "Bio is not provided!!!",
+        fullName: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`,
       },
     });
   }
+
   if (eventType === "user.deleted") {
     await db.user.delete({
       where: { clerkId: evt.data.id },
