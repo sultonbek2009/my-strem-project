@@ -14,10 +14,10 @@ export async function POST(req: Request) {
 
   const wh = new Webhook(SIGNING_SECRET);
 
-  const headerPayload = await headers();
-  const svix_id = headerPayload.get("svix-id");
-  const svix_timestamp = headerPayload.get("svix-timestamp");
-  const svix_signature = headerPayload.get("svix-signature");
+  const headerPayload = headers();
+  const svix_id = (await headerPayload).get("svix-id");
+  const svix_timestamp = (await headerPayload).get("svix-timestamp");
+  const svix_signature = (await headerPayload).get("svix-signature");
 
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return new Response("Error: Missing Svix headers", { status: 400 });
@@ -27,7 +27,6 @@ export async function POST(req: Request) {
   const body = JSON.stringify(payload);
 
   let evt: WebhookEvent;
-
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
@@ -35,35 +34,43 @@ export async function POST(req: Request) {
       "svix-signature": svix_signature,
     }) as WebhookEvent;
   } catch (err) {
-    console.log("Error: Could not verify webhook:", err);
-    return new Response("Error: Verefication error", { status: 400 });
+    console.error("Error verifying webhook:", err);
+    return new Response("Error verifying webhook", { status: 400 });
   }
 
   const { id } = evt.data;
   const eventType = evt.type;
 
+  console.log(`✅ Received webhook with ID ${id} and event type ${eventType}`);
+  console.log("🔹 Payload:", evt.data);
+
   if (eventType === "user.created") {
+    if (!evt.data.username || evt.data.username.trim() === "") {
+      return new Response("Username is required", { status: 400 });
+    }
     await db.user.create({
       data: {
         clerkId: evt.data.id,
-        username: evt.data.username!,
+        username: evt.data.username,
         avatar: evt.data.image_url,
-        fullName: `${evt.data.first_name} ${evt.data.last_name}`,
-        bio: "Bio is not provided!!!",
+        fullName: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`,
+        bio: "Bio is not provided",
       },
     });
   }
+
   if (eventType === "user.updated") {
     await db.user.update({
       where: { clerkId: evt.data.id },
       data: {
-        username: evt.data.username!,
+        username: evt.data.username || "default_username",
         avatar: evt.data.image_url,
-        fullName: `${evt.data.first_name} ${evt.data.last_name}`,
-        bio: "Bio is not provided!!!",
+        fullName: `${evt.data.first_name ?? ""} ${evt.data.last_name ?? ""}`,
+        bio: "Bio is not provided",
       },
     });
   }
+
   if (eventType === "user.deleted") {
     await db.user.delete({
       where: { clerkId: evt.data.id },
