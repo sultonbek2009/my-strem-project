@@ -1,14 +1,22 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { RootLayoutProps } from "@/types";
+import React from "react";
 import { AppSidebar } from "./_components/sidebar/app-sidebar";
+import AppNavbar from "./_components/app-navbar";
+import { ClerkProvider } from "@clerk/nextjs";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+const Layout = ({ children }: RootLayoutProps) => {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
-    </SidebarProvider>
+    <ClerkProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <main className="w-full h-full">
+          <AppNavbar />
+          {children}
+        </main>
+      </SidebarProvider>
+    </ClerkProvider>
   );
-}
+};
+
+export default Layout;
