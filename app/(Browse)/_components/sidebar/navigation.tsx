@@ -17,7 +17,7 @@ function Navigation() {
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel>Pagee</SidebarGroupLabel>
+        <SidebarGroupLabel>Pageee</SidebarGroupLabel>
         <SidebarContent>
           <SidebarMenu>
             {navigation_links.map((item) => (

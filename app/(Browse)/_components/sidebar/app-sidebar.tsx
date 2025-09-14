@@ -23,7 +23,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <Button size={"lg"} className=" rounded-lg" asChild>
           <Link href={"/u/"}>
-            <span>View Profil</span>
+            <span>View Profill</span>
             <CircleGauge />
           </Link>
         </Button>
