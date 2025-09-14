@@ -7,7 +7,7 @@ export const navigation_links = [
 ];
 export const following = [
   {
-    title: "Jahongir",
+    title: "Jahongirr",
     followBy: 23,
     id: 1,
     avatar:
