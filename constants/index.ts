@@ -21,14 +21,14 @@ export const following = [
       "https://avatars.mds.yandex.net/i?id=1322f2e4342abeb07a92b46d4c2e4d875a8acc02-4551895-images-thumbs&n=13",
   },
   {
-    title: "Fazliddinn",
+    title: "Fazliddinnы",
     followBy: 34,
     id: 3,
     avatar:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaDUBfRHSA5PP344ulhFuyXRdbVdOgHjIFxA&s",
   },
   {
-    title: "Xondamirr",
+    title: "Xondamirrы",
     followBy: 43,
     id: 4,
     avatar:
